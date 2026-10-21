@@ -44,6 +44,13 @@ any `v*` tag push — see `CONTRIBUTING.md`'s "Releasing" section. No release ha
   working against the real device (the last one via title-alignment behavior, not a visible icon swap —
   icons are still 1×1 placeholders). Full details in `streamdeck-plugin/README.md`'s "Verification
   performed" section, dated entry.
+- **Important correction, also 2026-10-21**: all of the above was verified via `streamdeck link`'s dev
+  symlink, which is **not the same thing** as the real packaged `.streamDeckPlugin`. The actual v1.0.0
+  GitHub Release's plugin could not run *at all* for any real user — no `node_modules`, no
+  `"type":"module"` context, a silent log-free crash. Fixed by switching to an esbuild bundle; see
+  `streamdeck-plugin/README.md`'s "the real v1.0.0 GitHub Release distributable" entry before trusting
+  any future "verified on hardware" claim about this plugin — confirm it was tested as a real install,
+  not just the symlink.
 - Velopack auto-update was an explicit stretch goal in the plan, never required for v1 — not done.
 - The published self-contained build was run and functionally verified on *this* dev machine (which
   already has .NET SDKs installed) — not on a genuinely clean VM with zero .NET installed, which the

@@ -12,10 +12,12 @@ Not part of the `.slnx` — this is a sibling Node/TypeScript project, per the p
 ```
 streamdeck-plugin/
 ├── com.soundboardlite.streamdeck.sdPlugin/   # what actually ships/loads into Stream Deck
-│   ├── bin/                                   # compiled output (gitignored, `npm run build`)
-│   ├── imgs/                                  # icons — currently 1x1 placeholders, see below
+│   ├── bin/                                   # bundled output (gitignored, `npm run build`) — a single
+│   │                                           # self-contained plugin.js, all deps inlined by esbuild
+│   ├── imgs/                                  # icons — see "Icon rendering" note below
 │   ├── ui/                                     # property inspector HTML + shared PI socket boilerplate
-│   └── manifest.json
+│   ├── manifest.json
+│   └── package.json                           # just {"type":"module"} — see "Verification performed"
 ├── src/
 │   ├── actions/
 │   │   ├── trigger-clip.ts    # one key = trigger one clip
@@ -30,9 +32,15 @@ streamdeck-plugin/
 
 ```
 npm install
-npm run build      # tsc -> com.soundboardlite.streamdeck.sdPlugin/bin/
-npm run watch       # same, but watches
+npm run build      # tsc --noEmit (typecheck) + esbuild bundle -> .../bin/plugin.js
+npm run watch       # re-bundles on change (no typecheck — run `npm run typecheck` separately)
+npm run pack        # -> com.soundboardlite.streamdeck.streamDeckPlugin, via @elgato/cli
 ```
+
+`npm run build` bundles the plugin and *all* its npm dependencies (`@elgato/streamdeck`, `ws`, etc.)
+into one `bin/plugin.js` via esbuild — plain `tsc` only transpiles, it doesn't inline `node_modules`,
+which is exactly what broke the real distributable (see "Verification performed" below). Do not
+revert to a bare `tsc` build without re-reading that section first.
 
 ## Verification performed
 
@@ -96,6 +104,47 @@ What was verified, by actually running it against the real Soundboard Lite app:
 - Node version: this machine's Elgato-bundled runtime for the plugin was Node 20.20.2, matching the
   manifest's `Nodejs.Version: "20"` — ran without incident.
 
+### 2026-10-21 — the real v1.0.0 GitHub Release distributable, not just the dev symlink
+
+Everything verified in the pass above — including the "real hardware" claims — was against a plugin
+installed via `streamdeck link`, which **symlinks** the Elgato Plugins folder entry back to this repo's
+own `streamdeck-plugin/` directory. That incidentally put the repo's `node_modules/` one directory
+above the plugin's actual files the whole time, which matters more than it sounds like:
+
+- **The real packaged `.streamDeckPlugin` could never run at all, for anyone.** Installing the actual
+  v1.0.0 GitHub Release and placing a key produced an infinite "Loading..." board dropdown with **no
+  log output whatsoever** — not even a crash log. Running `node bin/plugin.js` directly from the
+  installed (non-symlinked) folder revealed why: `SyntaxError: Cannot use import statement outside a
+  module` (no `package.json` with `"type":"module"` shipped alongside the compiled output — our source
+  `package.json` declares it, but `streamdeck pack` never bundles that file), immediately followed by
+  `ERR_MODULE_NOT_FOUND: Cannot find package '@elgato/streamdeck'` once that was fixed (plain `tsc`
+  output keeps bare `import` specifiers that only resolved before because the dev symlink's
+  `node_modules` happened to be reachable above it — a packaged install has no `node_modules`
+  anywhere near it at all). Both failures happen at module-load time, before the SDK's own logger
+  initializes, which is why there was no log of any kind — a dead giveaway if you see this symptom
+  again.
+- **Fix**: switched the build to `esbuild`, bundling the plugin and every one of its npm dependencies
+  into one self-contained `bin/plugin.js`, plus a static `com.soundboardlite.streamdeck.sdPlugin/
+  package.json` containing just `{"type":"module"}` (`streamdeck pack` *does* include arbitrary files
+  sitting in the `sdPlugin` folder, just not the project-root `package.json` one directory up). Verified
+  by copying the built `sdPlugin` folder to a directory with zero `node_modules` anywhere in its parent
+  chain and running `node bin/plugin.js` directly — it now starts cleanly.
+- **A second esbuild-specific gotcha surfaced during the fix**: bundling to ESM output threw `Dynamic
+  require of "events" is not supported` from inside `ws`'s bundled code — a known esbuild limitation
+  where a dependency's runtime-conditional `require()` call can't be statically rewritten. Fixed with
+  `--banner:js` injecting a real `createRequire`-based `require` at the top of the bundle (the standard
+  documented workaround), not by avoiding `ws` or downgrading the output format — CJS output format
+  doesn't work here either, since `plugin.ts`'s own top-level `await streamDeck.connect()` requires ESM.
+- **Moral for next time**: "verified on real hardware" via a `streamdeck link` dev install is **not**
+  the same claim as "verified as a real end-user installs it." If you only ever test via the symlink
+  workflow, re-test against an actually-packed `.streamDeckPlugin` installed the normal way before
+  trusting a release — see "Installing locally for manual testing" below for both paths.
+- **Also added this session**: a key with no user-set title now defaults to showing its assigned
+  clip's name (`src/actions/trigger-clip.ts`'s `onTitleParametersDidChange`/`onDidReceiveSettings`) —
+  real user-typed titles are left alone once observed. Confirmed live on hardware: the title appeared
+  automatically, and survived being deliberately left alone when the key's assigned clip later
+  reappeared via a page switch.
+
 What is **still not verified**:
 - Icon rendering with real artwork — every `.png` referenced from `manifest.json` is still a 1×1
   placeholder (just enough to pass manifest validation and let the plugin load, and now confirmed to be
@@ -109,8 +158,19 @@ What is **still not verified**:
 
 ## Installing locally for manual testing
 
+Two different paths — they are **not equivalent**, see the 2026-10-21 finding above:
+
+**Dev loop** (symlinked — fast iteration, but can mask packaging bugs):
 ```
-npm install -g @elgato/cli
 streamdeck link com.soundboardlite.streamdeck.sdPlugin
 streamdeck restart com.soundboardlite.streamdeck
 ```
+
+**Real distributable** (what an actual end user does — always test this before a release):
+```
+npm run build
+npm run pack        # -> com.soundboardlite.streamdeck.streamDeckPlugin
+```
+Double-click the resulting `.streamDeckPlugin` file. If you already have the dev-linked symlink
+installed, remove it first (`streamdeck unlink com.soundboardlite.streamdeck`) so the real install
+isn't shadowed by it.
