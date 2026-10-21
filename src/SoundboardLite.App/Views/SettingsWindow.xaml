@@ -1,0 +1,68 @@
+<ui:FluentWindow
+    x:Class="SoundboardLite.App.Views.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:controls="clr-namespace:SoundboardLite.App.Controls"
+    Title="Settings"
+    Width="420"
+    Height="380"
+    MinWidth="360"
+    MinHeight="340"
+    WindowStartupLocation="CenterOwner"
+    ExtendsContentIntoTitleBar="True"
+    WindowBackdropType="Mica">
+
+    <Grid Margin="16,0,16,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="Settings" />
+
+        <TextBlock Grid.Row="1" Text="Push-to-talk defaults" FontWeight="SemiBold" Margin="0,8,0,8" />
+
+        <Grid Grid.Row="2" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Default PTT key" VerticalAlignment="Center" />
+            <controls:KeyCaptureBox Grid.Row="0" Grid.Column="1"
+                                     VirtualKeyCode="{Binding DefaultPttKey}"
+                                     Width="200" HorizontalAlignment="Left" Margin="0,4" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Begin delay (ms)" VerticalAlignment="Center" />
+            <TextBox Grid.Row="1" Grid.Column="1" Width="80" HorizontalAlignment="Left" Margin="0,4"
+                     Text="{Binding DefaultBeginDelayMs}" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="End delay (ms)" VerticalAlignment="Center" />
+            <TextBox Grid.Row="2" Grid.Column="1" Width="80" HorizontalAlignment="Left" Margin="0,4"
+                     Text="{Binding DefaultEndDelayMs}" />
+        </Grid>
+
+        <TextBlock Grid.Row="3" Text="Output" FontWeight="SemiBold" Margin="0,16,0,8" />
+
+        <StackPanel Grid.Row="4" VerticalAlignment="Top">
+            <CheckBox Content="Low-latency output (~45ms instead of ~100ms)" IsChecked="{Binding LowLatencyOutput}" />
+            <TextBlock Text="Lower latency can be less robust on some audio hardware/drivers."
+                       Opacity="0.6" FontSize="11" Margin="20,4,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <ui:Button Content="Cancel" Command="{Binding CancelCommand}" Margin="0,0,8,0" />
+            <ui:Button Content="Save" Appearance="Primary" Command="{Binding SaveCommand}" />
+        </StackPanel>
+    </Grid>
+</ui:FluentWindow>

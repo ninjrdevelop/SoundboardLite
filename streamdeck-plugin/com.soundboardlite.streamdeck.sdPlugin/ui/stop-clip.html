@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Stop Clip</title>
+    <style>
+        body { font-family: sans-serif; background: #2d2d2d; color: #ddd; margin: 0; padding: 12px; }
+        label { display: block; margin-top: 8px; font-size: 12px; opacity: 0.8; }
+        select { width: 100%; padding: 6px; margin-top: 4px; background: #3d3d3d; color: #fff; border: 1px solid #555; }
+        .hint { font-size: 11px; opacity: 0.6; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <label for="board">Board</label>
+    <select id="board"><option>Loading…</option></select>
+
+    <label for="clip">Clip</label>
+    <select id="clip"><option>Select a board first</option></select>
+
+    <div class="hint">Requires Soundboard Lite to be running. Pressing this key stops the selected clip.</div>
+
+    <script src="pi-common.js"></script>
+    <script>
+        const boardSelect = document.getElementById("board");
+        const clipSelect = document.getElementById("clip");
+        let savedSettings = {};
+
+        function onConnected(settings) {
+            savedSettings = settings;
+            sendToPlugin({ event: "requestBoards" });
+        }
+
+        function onPluginMessage(payload) {
+            if (payload.event === "boards") {
+                renderBoards(payload.boards);
+            } else if (payload.event === "clips") {
+                renderClips(payload.boardId, payload.clips);
+            } else if (payload.event === "error") {
+                boardSelect.innerHTML = "<option>Soundboard Lite not running</option>";
+                clipSelect.innerHTML = "<option>—</option>";
+            }
+        }
+
+        function renderBoards(boards) {
+            boardSelect.innerHTML = "";
+            for (const board of boards) {
+                const opt = document.createElement("option");
+                opt.value = board.id;
+                opt.textContent = board.name;
+                if (board.id === savedSettings.boardId) opt.selected = true;
+                boardSelect.appendChild(opt);
+            }
+            if (boardSelect.value) {
+                sendToPlugin({ event: "requestClips", boardId: boardSelect.value });
+            }
+        }
+
+        function renderClips(boardId, clips) {
+            if (boardId !== boardSelect.value) return;
+            clipSelect.innerHTML = "";
+            for (const clip of clips) {
+                const opt = document.createElement("option");
+                opt.value = clip.id;
+                opt.textContent = clip.name;
+                if (clip.id === savedSettings.clipId) opt.selected = true;
+                clipSelect.appendChild(opt);
+            }
+            persist();
+        }
+
+        function persist() {
+            const boardOpt = boardSelect.selectedOptions[0];
+            const clipOpt = clipSelect.selectedOptions[0];
+            saveSettings({
+                boardId: boardSelect.value || undefined,
+                boardName: boardOpt ? boardOpt.textContent : undefined,
+                clipId: clipSelect.value || undefined,
+                clipName: clipOpt ? clipOpt.textContent : undefined,
+            });
+        }
+
+        boardSelect.addEventListener("change", () => sendToPlugin({ event: "requestClips", boardId: boardSelect.value }));
+        clipSelect.addEventListener("change", persist);
+    </script>
+</body>
+</html>

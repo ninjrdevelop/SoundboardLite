@@ -1,0 +1,71 @@
+{
+    "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+    "Name": "Soundboard Lite",
+    "Version": "0.1.0.0",
+    "Author": "Soundboard Lite",
+    "Description": "Trigger, stop, and panic-stop Soundboard Lite clips from physical Stream Deck keys. Requires Soundboard Lite to be running.",
+    "Icon": "imgs/plugin-icon",
+    "CodePath": "bin/plugin.js",
+    "UUID": "com.soundboardlite.streamdeck",
+    "SDKVersion": 3,
+    "Software": {
+        "MinimumVersion": "7.1"
+    },
+    "OS": [
+        {
+            "Platform": "windows",
+            "MinimumVersion": "10"
+        }
+    ],
+    "Nodejs": {
+        "Version": "20"
+    },
+    "Category": "Soundboard Lite",
+    "CategoryIcon": "imgs/category-icon",
+    "Actions": [
+        {
+            "Name": "Trigger Clip",
+            "UUID": "com.soundboardlite.streamdeck.trigger-clip",
+            "Icon": "imgs/actions/trigger-clip/icon",
+            "PropertyInspectorPath": "ui/trigger-clip.html",
+            "Controllers": ["Keypad"],
+            "DisableAutomaticStates": true,
+            "States": [
+                {
+                    "Image": "imgs/actions/trigger-clip/key",
+                    "TitleAlignment": "bottom"
+                },
+                {
+                    "Image": "imgs/actions/trigger-clip/key-playing",
+                    "TitleAlignment": "bottom"
+                }
+            ]
+        },
+        {
+            "Name": "Stop Clip",
+            "UUID": "com.soundboardlite.streamdeck.stop-clip",
+            "Icon": "imgs/actions/stop-clip/icon",
+            "PropertyInspectorPath": "ui/stop-clip.html",
+            "Controllers": ["Keypad"],
+            "States": [
+                {
+                    "Image": "imgs/actions/stop-clip/key",
+                    "TitleAlignment": "bottom"
+                }
+            ]
+        },
+        {
+            "Name": "Stop All (Panic)",
+            "UUID": "com.soundboardlite.streamdeck.stop-all",
+            "Icon": "imgs/actions/stop-all/icon",
+            "Controllers": ["Keypad"],
+            "States": [
+                {
+                    "Image": "imgs/actions/stop-all/key",
+                    "Title": "STOP ALL",
+                    "TitleAlignment": "bottom"
+                }
+            ]
+        }
+    ]
+}

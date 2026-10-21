@@ -1,0 +1,53 @@
+name: .NET
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "streamdeck-plugin/**"
+      - "**.md"
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "streamdeck-plugin/**"
+      - "**.md"
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: "**/test-results.trx"
+          retention-days: 14
+
+      - name: Publish self-contained single-file build
+        run: dotnet publish src/SoundboardLite.App/SoundboardLite.App.csproj -c Release
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoundboardLite-win-x64
+          path: src/SoundboardLite.App/bin/Release/net10.0-windows/win-x64/publish/
+          retention-days: 14

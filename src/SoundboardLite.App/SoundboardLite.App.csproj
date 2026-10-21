@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <!-- See UseWindowsForms remarks below — these implicit global usings collide with WPF's own types. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SoundboardLite.Core\SoundboardLite.Core.csproj" />
+    <ProjectReference Include="..\SoundboardLite.Data\SoundboardLite.Data.csproj" />
+    <ProjectReference Include="..\SoundboardLite.Audio\SoundboardLite.Audio.csproj" />
+    <ProjectReference Include="..\SoundboardLite.Api\SoundboardLite.Api.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- Only for System.Windows.Forms.NotifyIcon (tray minimize) — WPF has no tray icon API of its
+         own. The implicit global usings this adds (System.Windows.Forms, System.Drawing) collide
+         with WPF's own ambient types (TextBox, Application, Color, Size, *EventArgs, ...), so they're
+         removed below; NotifyIcon.cs uses the fully-qualified System.Windows.Forms.* names instead. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- WPF's data-binding culture lookup (BindingExpression.GetCulture) is incompatible with
+         invariant globalization mode, so override the repo-wide default just for this project. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- Publish settings (M5): self-contained ReadyToRun single-file, no separate .NET runtime install
+       required. Full Native AOT isn't viable for WPF today (XAML/BAML loading relies on reflection),
+       so trimming stays off — this is the realistic "light to run" ceiling per the plan. These only
+       affect `dotnet publish`; `dotnet build`/`dotnet run` are unaffected. -->
+  <PropertyGroup>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+</Project>

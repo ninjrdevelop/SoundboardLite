@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SoundboardLite.Api/SoundboardLite.Api.csproj" />
+    <Project Path="src/SoundboardLite.App/SoundboardLite.App.csproj" />
+    <Project Path="src/SoundboardLite.Audio/SoundboardLite.Audio.csproj" />
+    <Project Path="src/SoundboardLite.Core/SoundboardLite.Core.csproj" />
+    <Project Path="src/SoundboardLite.Data/SoundboardLite.Data.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SoundboardLite.Api.Tests/SoundboardLite.Api.Tests.csproj" />
+    <Project Path="tests/SoundboardLite.Audio.Tests/SoundboardLite.Audio.Tests.csproj" />
+    <Project Path="tests/SoundboardLite.Core.Tests/SoundboardLite.Core.Tests.csproj" />
+    <Project Path="tests/SoundboardLite.Data.Tests/SoundboardLite.Data.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,44 @@
+name: Stream Deck plugin
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "streamdeck-plugin/**"
+      - ".github/workflows/streamdeck-plugin.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "streamdeck-plugin/**"
+      - ".github/workflows/streamdeck-plugin.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: streamdeck-plugin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: streamdeck-plugin/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (tsc)
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamdeck-plugin
+          path: streamdeck-plugin/com.soundboardlite.streamdeck.sdPlugin/
+          retention-days: 14
