@@ -47,10 +47,18 @@ All five `src/` projects build warnings-as-errors for nullable-reference violati
 ## Stream Deck plugin
 
 `streamdeck-plugin/` is a separate npm/TypeScript project, not part of the `.slnx`. See its own
-README for build instructions and — importantly — what has and hasn't been verified against real
-Stream Deck hardware/software (as of writing, the core API-integration logic has been, the
-property-inspector wire protocol and actual key presses haven't — no hardware was available during
-that work). If you have a real Stream Deck, testing that gap and reporting back is genuinely useful.
+README for build instructions and what has/hasn't been verified against real Stream Deck
+hardware/software — most of it has, as of the dated entry in that README; check there before assuming
+a gap still exists.
+
+## Releasing
+
+Push a tag matching `v*` (e.g. `v1.0.0`) to trigger `.github/workflows/release.yml`, which builds and
+tests the .NET solution, publishes the self-contained single-file app, builds and packages the Stream
+Deck plugin (`streamdeck pack`), and creates a GitHub Release with both files attached — a
+`SoundboardLite-vX.Y.Z-win-x64.zip` and a `com.soundboardlite.streamdeck.streamDeckPlugin`. The
+workflow also accepts manual `workflow_dispatch` runs (give it a version) for a dry-run build without
+cutting a release — useful for testing the pipeline itself.
 
 ## Pull requests
 

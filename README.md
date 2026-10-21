@@ -26,7 +26,18 @@ the voice-changer bulk. Native .NET/WPF, not Electron.
 - To build: .NET 10 SDK.
 - To build the Stream Deck plugin: Node.js 20+.
 
-## Building and running
+## Download (no build required)
+
+Grab the latest release from this repo's **[Releases page](../../releases)**. Each release has two
+files:
+
+- **`SoundboardLite-vX.Y.Z-win-x64.zip`** — extract anywhere and run `SoundboardLite.App.exe`. It's a
+  self-contained single-file build; no separate .NET runtime install needed.
+- **`com.soundboardlite.streamdeck.streamDeckPlugin`** — optional, only needed for Stream Deck
+  support. Double-click it to install into the Stream Deck app (Soundboard Lite must be running for
+  the plugin to connect to it).
+
+## Building and running from source
 
 ```
 git clone <this repo>

@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build (e.g. 1.2.3) — for a test run only; no tag means no GitHub Release is created"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: streamdeck-plugin/package-lock.json
+
+      - name: Restore .NET
+        run: dotnet restore
+
+      - name: Build .NET
+        run: dotnet build --no-restore -c Release
+
+      - name: Test .NET
+        run: dotnet test --no-build -c Release
+
+      - name: Publish self-contained single-file app
+        run: >
+          dotnet publish src/SoundboardLite.App/SoundboardLite.App.csproj -c Release
+          -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Zip app publish output
+        shell: pwsh
+        run: |
+          $zipName = "SoundboardLite-v${{ steps.version.outputs.version }}-win-x64.zip"
+          Compress-Archive -Path "src/SoundboardLite.App/bin/Release/net10.0-windows/win-x64/publish/*" -DestinationPath $zipName
+          echo "APP_ZIP=$zipName" >> $env:GITHUB_ENV
+
+      - name: Install plugin dependencies
+        working-directory: streamdeck-plugin
+        run: npm ci
+
+      - name: Build plugin
+        working-directory: streamdeck-plugin
+        run: npm run build
+
+      - name: Package Stream Deck plugin
+        working-directory: streamdeck-plugin
+        run: npx streamdeck pack com.soundboardlite.streamdeck.sdPlugin --version ${{ steps.version.outputs.version }} -f
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SoundboardLite-v${{ steps.version.outputs.version }}
+          path: |
+            ${{ env.APP_ZIP }}
+            streamdeck-plugin/com.soundboardlite.streamdeck.streamDeckPlugin
+          retention-days: 14
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            "${{ env.APP_ZIP }}" \
+            "streamdeck-plugin/com.soundboardlite.streamdeck.streamDeckPlugin" \
+            --title "Soundboard Lite ${{ steps.version.outputs.version }}" \
+            --generate-notes
