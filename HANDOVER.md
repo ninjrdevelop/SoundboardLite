@@ -13,11 +13,13 @@ Open-source, lightweight Windows-native soundboard app (a VoiceMod-soundboard-fe
 without the voice-changer bulk). Native .NET/C# WPF. See `README.md` for the user-facing feature list
 and build/run instructions — not duplicated here.
 
-Repo: `D:\1Dev\Open Source\soundboard-lite`. **Still not a git repo** — no commits exist, nothing has
-been pushed anywhere, across every session of this project so far. This has been a standing,
-deliberately-unresolved decision point (not an oversight) — the user hasn't asked for `git init` yet.
-Worth raising explicitly next session rather than assuming either way, especially now that there's a
-`LICENSE`, `README.md`, `.github/workflows/`, etc. all sitting ready to go the moment it is one.
+Repo: `D:\1Dev\Open Source\soundboard-lite`. **Git-initialized 2026-10-21** (was deliberately left
+undone across every prior session until explicitly asked for) — pushed to
+`https://github.com/ninjrdevelop/SoundboardLite`, `main` branch. A tag-triggered release pipeline
+(`.github/workflows/release.yml`) now builds and attaches both distributables to a GitHub Release on
+any `v*` tag push — see `CONTRIBUTING.md`'s "Releasing" section. No release has actually been cut yet
+(no tag pushed) — the pipeline's individual steps were rehearsed manually (dotnet publish + zip,
+`npm run pack`) but the workflow itself has never run on GitHub Actions.
 
 ## Status: M1–M5 all complete and verified (with scoped exceptions noted below)
 
@@ -147,21 +149,28 @@ New this session:
    inflates the number well past what the process actually costs the system. `PrivateMemorySize64` is
    the more honest comparison point. Keep this in mind if anyone later asks "why does Task Manager show
    180MB+ when you said under 150MB" — it's not a regression, it's measuring a different thing.
+5. **`streamdeck pack --version X` mutates the *source* `manifest.json` on disk**, not just the
+   generated `.streamDeckPlugin` package's copy — it rewrites `Version` and reformats some arrays
+   (`Controllers` goes from inline to multi-line) as a side effect. Harmless inside CI (an ephemeral
+   checkout), but running it locally for a quick test will leave the tracked manifest dirty —
+   `git checkout -- streamdeck-plugin/com.soundboardlite.streamdeck.sdPlugin/manifest.json` after any
+   local dry-run that isn't an actual release.
 
 ## What's next
 
 The plan's 5 milestones are done. Natural next steps, roughly in order of likely value:
 
 1. ~~Get this in front of a real Stream Deck...~~ **Done 2026-10-21** — see `streamdeck-plugin/README.md`.
-2. **Decide on `git init` + first commit** — everything needed (`LICENSE`, `.gitignore`, CI workflows)
-   is in place and waiting; this has been left as an explicit open decision across every session so
-   far specifically because it wasn't asked for.
-3. Real icon artwork for the Stream Deck plugin (currently 1×1 placeholders — see its README) and for
-   the app itself (currently relies on the default .NET WinExe icon via
-   `Icon.ExtractAssociatedIcon` for the tray; no custom app icon has been set anywhere).
-4. Verify the published build on an actual clean machine/VM (no .NET installed) — the one part of the
+2. ~~Decide on `git init` + first commit~~ **Done 2026-10-21** — pushed to
+   `https://github.com/ninjrdevelop/SoundboardLite`, release pipeline added.
+3. **Cut an actual first release** (`git tag v1.0.0 && git push --tags`) — the release workflow has
+   never actually run on GitHub Actions yet, only had its individual steps rehearsed locally.
+4. Real icon artwork for the app itself (currently relies on the default .NET WinExe icon via
+   `Icon.ExtractAssociatedIcon` for the tray; no custom app icon has been set anywhere). The Stream
+   Deck plugin's icons were generated and shipped 2026-10-21 — see `streamdeck-plugin/README.md`.
+5. Verify the published build on an actual clean machine/VM (no .NET installed) — the one part of the
    plan's M5 verification checklist this session couldn't do.
-5. Velopack auto-update, if desired — explicit stretch goal, was never required for v1.
+6. Velopack auto-update, if desired — explicit stretch goal, was never required for v1.
 
 ## Build / test / run / publish commands
 
