@@ -1,12 +1,14 @@
 {
   "name": "com.soundboardlite.streamdeck",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Stream Deck plugin for Soundboard Lite — trigger clips, stop, and panic-stop from physical Stream Deck keys via Soundboard Lite's embedded local API.",
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "watch": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "bundle": "esbuild src/plugin.ts --bundle --platform=node --format=esm --target=node20 --outfile=com.soundboardlite.streamdeck.sdPlugin/bin/plugin.js --sourcemap --banner:js=\"import{createRequire as __cr}from 'module';const require=__cr(import.meta.url);\"",
+    "build": "npm run typecheck && npm run bundle",
+    "watch": "npm run bundle -- --watch",
     "pack": "streamdeck pack com.soundboardlite.streamdeck.sdPlugin -f"
   },
   "dependencies": {
@@ -18,6 +20,7 @@
     "@elgato/cli": "^1.10.3",
     "@types/node": "^22.0.0",
     "@types/ws": "^8.5.0",
+    "esbuild": "^0.28.2",
     "typescript": "^5.6.0"
   }
 }

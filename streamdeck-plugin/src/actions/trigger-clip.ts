@@ -1,4 +1,11 @@
-import streamDeck, { action, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/streamdeck";
+import streamDeck, {
+    action,
+    DidReceiveSettingsEvent,
+    KeyDownEvent,
+    SingletonAction,
+    TitleParametersDidChangeEvent,
+    WillAppearEvent,
+} from "@elgato/streamdeck";
 import type { JsonObject } from "@elgato/utils";
 import { onPlaybackEvent, triggerClip, type PlaybackEvent } from "../app-connection.js";
 
@@ -27,15 +34,53 @@ export class TriggerClipAction extends SingletonAction<TriggerClipSettings> {
      * overlapping instance of the same clip is still going. */
     private activeCounts = new Map<string, number>();
 
+    /** Clip name we last auto-filled as each key's title, and which keys have a real
+     * user-typed title. The SDK has no "is this title user-set?" query — `titleParametersDidChange`
+     * reports the live title text, so a title that's neither empty nor our own last fallback value
+     * must be something the user typed, and we stop touching it from then on (until they clear it
+     * back to empty, which we treat as "use the default again"). */
+    private autoTitles = new Map<string, string>();
+    private userOwnsTitle = new Set<string>();
+
     override onWillAppear(ev: WillAppearEvent<TriggerClipSettings>): void | Promise<void> {
         if (!this.subscribed) {
             this.subscribed = true;
             onPlaybackEvent((evt) => this.handlePlaybackEvent(evt));
         }
+    }
 
-        const { clipName } = ev.payload.settings;
-        if (clipName && ev.action.isKey()) {
-            return ev.action.setTitle(clipName);
+    override onTitleParametersDidChange(ev: TitleParametersDidChangeEvent<TriggerClipSettings>): void | Promise<void> {
+        const { action, payload } = ev;
+        if (!action.isKey()) {
+            return;
+        }
+
+        const { title } = payload;
+        const { clipName } = payload.settings;
+
+        if (title === "" || title === this.autoTitles.get(action.id)) {
+            this.userOwnsTitle.delete(action.id);
+        } else {
+            this.userOwnsTitle.add(action.id);
+            return;
+        }
+
+        if (clipName && title !== clipName) {
+            this.autoTitles.set(action.id, clipName);
+            return action.setTitle(clipName);
+        }
+    }
+
+    override onDidReceiveSettings(ev: DidReceiveSettingsEvent<TriggerClipSettings>): void | Promise<void> {
+        const { action, payload } = ev;
+        if (!action.isKey() || this.userOwnsTitle.has(action.id)) {
+            return;
+        }
+
+        const { clipName } = payload.settings;
+        if (clipName) {
+            this.autoTitles.set(action.id, clipName);
+            return action.setTitle(clipName);
         }
     }
 
