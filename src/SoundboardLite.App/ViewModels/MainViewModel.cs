@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using SoundboardLite.Api;
+using SoundboardLite.App.Services;
 using SoundboardLite.App.Views;
 using SoundboardLite.Core.Abstractions;
 using SoundboardLite.Core.Models;
@@ -68,6 +70,41 @@ public sealed partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _statusMessage;
+
+    [ObservableProperty]
+    private string? _appUpdateMessage;
+
+    [ObservableProperty]
+    private string? _pluginUpdateMessage;
+
+    private string? _appReleaseUrl;
+    private string? _pluginDownloadUrl;
+
+    public void ApplyUpdateCheckResult(UpdateCheckResult result)
+    {
+        AppUpdateMessage = result.AppUpdateMessage;
+        _appReleaseUrl = result.AppReleaseUrl;
+        PluginUpdateMessage = result.PluginUpdateMessage;
+        _pluginDownloadUrl = result.PluginDownloadUrl;
+    }
+
+    [RelayCommand]
+    private void OpenAppRelease()
+    {
+        if (_appReleaseUrl is not null)
+        {
+            Process.Start(new ProcessStartInfo(_appReleaseUrl) { UseShellExecute = true });
+        }
+    }
+
+    [RelayCommand]
+    private void OpenPluginDownload()
+    {
+        if (_pluginDownloadUrl is not null)
+        {
+            Process.Start(new ProcessStartInfo(_pluginDownloadUrl) { UseShellExecute = true });
+        }
+    }
 
     public async Task LoadAsync()
     {

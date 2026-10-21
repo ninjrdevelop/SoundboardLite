@@ -74,7 +74,21 @@ jobs:
 
       - name: Package Stream Deck plugin
         working-directory: streamdeck-plugin
-        run: npx streamdeck pack com.soundboardlite.streamdeck.sdPlugin --version ${{ steps.version.outputs.version }} -f
+        run: npx streamdeck pack com.soundboardlite.streamdeck.sdPlugin -f
+
+      - name: Rename plugin package with its own version
+        # Deliberately NOT --version'd from the release tag above: the plugin has its own version,
+        # tracked in manifest.json and bumped by hand only when streamdeck-plugin/ actually changes —
+        # a release can touch just the app and leave the plugin's shipped version untouched. The
+        # app's update-check feature (SoundboardLite.App.Services.UpdateCheckService) parses this exact
+        # filename pattern to learn the latest plugin version independently of the app's.
+        shell: bash
+        working-directory: streamdeck-plugin
+        run: |
+          PLUGIN_VERSION=$(node -p "require('./com.soundboardlite.streamdeck.sdPlugin/manifest.json').Version" | cut -d'.' -f1-3)
+          PLUGIN_ASSET="com.soundboardlite.streamdeck-v${PLUGIN_VERSION}.streamDeckPlugin"
+          mv com.soundboardlite.streamdeck.streamDeckPlugin "$PLUGIN_ASSET"
+          echo "PLUGIN_ASSET=streamdeck-plugin/$PLUGIN_ASSET" >> "$GITHUB_ENV"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -82,7 +96,7 @@ jobs:
           name: SoundboardLite-v${{ steps.version.outputs.version }}
           path: |
             ${{ env.APP_ZIP }}
-            streamdeck-plugin/com.soundboardlite.streamdeck.streamDeckPlugin
+            ${{ env.PLUGIN_ASSET }}
           retention-days: 14
 
       - name: Create GitHub Release
@@ -93,6 +107,6 @@ jobs:
         run: |
           gh release create "${{ github.ref_name }}" \
             "${{ env.APP_ZIP }}" \
-            "streamdeck-plugin/com.soundboardlite.streamdeck.streamDeckPlugin" \
+            "${{ env.PLUGIN_ASSET }}" \
             --title "Soundboard Lite ${{ steps.version.outputs.version }}" \
             --generate-notes

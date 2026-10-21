@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
     "Name": "Soundboard Lite",
-    "Version": "0.1.0.0",
+    "Version": "1.1.0.0",
     "Author": "Soundboard Lite",
     "Description": "Trigger, stop, and panic-stop Soundboard Lite clips from physical Stream Deck keys. Requires Soundboard Lite to be running.",
     "Icon": "imgs/plugin-icon",

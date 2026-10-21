@@ -56,9 +56,19 @@ a gap still exists.
 Push a tag matching `v*` (e.g. `v1.0.0`) to trigger `.github/workflows/release.yml`, which builds and
 tests the .NET solution, publishes the self-contained single-file app, builds and packages the Stream
 Deck plugin (`streamdeck pack`), and creates a GitHub Release with both files attached — a
-`SoundboardLite-vX.Y.Z-win-x64.zip` and a `com.soundboardlite.streamdeck.streamDeckPlugin`. The
+`SoundboardLite-vX.Y.Z-win-x64.zip` and a `com.soundboardlite.streamdeck-vA.B.C.streamDeckPlugin`. The
 workflow also accepts manual `workflow_dispatch` runs (give it a version) for a dry-run build without
 cutting a release — useful for testing the pipeline itself.
+
+**The plugin's version is tracked independently of the app's/the release tag's** — bump
+`streamdeck-plugin/com.soundboardlite.streamdeck.sdPlugin/manifest.json`'s `"Version"` field by hand,
+in whatever commit actually changes something under `streamdeck-plugin/`, and leave it alone in
+releases that don't. The release workflow packages whatever that file currently says rather than
+stamping it from the tag — a release can bump the app without the plugin changing, and the app's
+in-app update check (`SoundboardLite.App.Services.UpdateCheckService`) relies on that distinction to
+avoid nagging about a "plugin update" that doesn't actually exist. The manifest's schema requires a
+4-part version (`{major}.{minor}.{patch}.{build}`); the release workflow truncates it to 3 parts for
+the asset filename the update check parses.
 
 ## Pull requests
 

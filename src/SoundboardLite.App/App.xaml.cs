@@ -1,8 +1,10 @@
 using System.IO;
+using System.Net.Http;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using SoundboardLite.App.Services;
 using SoundboardLite.App.ViewModels;
 using SoundboardLite.App.Views;
 using SoundboardLite.Api;
@@ -75,6 +77,9 @@ public partial class App : Application
                 services.AddSingleton<ClipEditorWindowFactory>();
                 services.AddSingleton<SettingsWindowFactory>();
 
+                services.AddSingleton<HttpClient>();
+                services.AddSingleton<UpdateCheckService>();
+
                 services.AddSingleton<MainViewModel>();
                 services.AddSingleton<MainWindow>();
             })
@@ -96,6 +101,15 @@ public partial class App : Application
         _ = viewModel.LoadAsync();
 
         _ = _host.Services.GetRequiredService<IRenderCacheGc>().RunAsync();
+
+        _ = _host.Services.GetRequiredService<UpdateCheckService>().CheckAsync()
+            .ContinueWith(t =>
+            {
+                if (t.IsCompletedSuccessfully)
+                {
+                    viewModel.ApplyUpdateCheckResult(t.Result);
+                }
+            }, TaskScheduler.FromCurrentSynchronizationContext());
     }
 
     protected override async void OnExit(ExitEventArgs e)

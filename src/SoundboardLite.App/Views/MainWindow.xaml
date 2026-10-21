@@ -158,9 +158,18 @@
             </DockPanel>
         </Grid>
 
-        <TextBlock Grid.Row="2"
-                   Text="{Binding StatusMessage}"
-                   Foreground="OrangeRed"
-                   Margin="16,0,16,10" />
+        <StackPanel Grid.Row="2" Margin="16,0,16,10">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="OrangeRed"
+                       Visibility="{Binding StatusMessage, Converter={StaticResource StringToVisibility}}" />
+            <TextBlock Visibility="{Binding AppUpdateMessage, Converter={StaticResource StringToVisibility}}">
+                <Run Text="{Binding AppUpdateMessage, Mode=OneWay}" />
+                <Hyperlink Command="{Binding OpenAppReleaseCommand}">View release</Hyperlink>
+            </TextBlock>
+            <TextBlock Visibility="{Binding PluginUpdateMessage, Converter={StaticResource StringToVisibility}}">
+                <Run Text="{Binding PluginUpdateMessage, Mode=OneWay}" />
+                <Hyperlink Command="{Binding OpenPluginDownloadCommand}">Download</Hyperlink>
+            </TextBlock>
+        </StackPanel>
     </Grid>
 </ui:FluentWindow>

@@ -51,7 +51,19 @@ any `v*` tag push — see `CONTRIBUTING.md`'s "Releasing" section. No release ha
   `streamdeck-plugin/README.md`'s "the real v1.0.0 GitHub Release distributable" entry before trusting
   any future "verified on hardware" claim about this plugin — confirm it was tested as a real install,
   not just the symlink.
-- Velopack auto-update was an explicit stretch goal in the plan, never required for v1 — not done.
+- **2026-10-21**: added a lightweight "check & notify" update feature instead of full Velopack
+  auto-update (researched; rejected for now — Velopack requires dropping `PublishSingleFile`, a real
+  release-workflow rework, and makes code signing load-bearing rather than optional, per
+  docs.velopack.io and Smart App Control behavior). `SoundboardLite.App.Services.UpdateCheckService`
+  checks GitHub's `releases/latest` on startup for both a newer app build and a newer *installed*
+  Stream Deck plugin (reading `%APPDATA%\Elgato\StreamDeck\Plugins\...\manifest.json` directly off
+  disk — no IPC with the plugin's own process needed). The plugin's version is tracked independently
+  of the app's: `manifest.json`'s `Version` is bumped by hand only in commits that touch
+  `streamdeck-plugin/`, and the release workflow names that asset
+  `com.soundboardlite.streamdeck-vA.B.C.streamDeckPlugin` (version embedded in the filename, parsed by
+  `SoundboardLite.Core.Services.UpdateVersionComparer` — no need to download/unzip anything just to
+  check). Never auto-downloads or applies anything, just a dismissible in-app notice with a link.
+  Velopack remains the documented path if this project ever outgrows notify-only updates.
 - The published self-contained build was run and functionally verified on *this* dev machine (which
   already has .NET SDKs installed) — not on a genuinely clean VM with zero .NET installed, which the
   plan's M5 verification step calls for. The self-contained/single-file settings mean it *should* be
@@ -170,14 +182,14 @@ The plan's 5 milestones are done. Natural next steps, roughly in order of likely
 1. ~~Get this in front of a real Stream Deck...~~ **Done 2026-10-21** — see `streamdeck-plugin/README.md`.
 2. ~~Decide on `git init` + first commit~~ **Done 2026-10-21** — pushed to
    `https://github.com/ninjrdevelop/SoundboardLite`, release pipeline added.
-3. **Cut an actual first release** (`git tag v1.0.0 && git push --tags`) — the release workflow has
-   never actually run on GitHub Actions yet, only had its individual steps rehearsed locally.
+3. ~~Cut an actual first release~~ **Done** — v1.0.0 and v1.1.0 both released; see git tags.
 4. Real icon artwork for the app itself (currently relies on the default .NET WinExe icon via
    `Icon.ExtractAssociatedIcon` for the tray; no custom app icon has been set anywhere). The Stream
    Deck plugin's icons were generated and shipped 2026-10-21 — see `streamdeck-plugin/README.md`.
 5. Verify the published build on an actual clean machine/VM (no .NET installed) — the one part of the
    plan's M5 verification checklist this session couldn't do.
-6. Velopack auto-update, if desired — explicit stretch goal, was never required for v1.
+6. ~~Velopack auto-update~~ **Superseded 2026-10-21** by a lightweight check-&-notify feature instead
+   (see the dated entry above) — revisit full Velopack only if notify-only updates stop being enough.
 
 ## Build / test / run / publish commands
 

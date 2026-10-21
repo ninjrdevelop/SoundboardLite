@@ -3,6 +3,18 @@
 A lightweight, open-source Windows soundboard — the soundboard half of apps like VoiceMod, without
 the voice-changer bulk. Native .NET/WPF, not Electron.
 
+## Note from Ninjr
+
+I was having issues with VoiceMod causing input lag in my games, so I threw Claude at this.
+
+Yes, it's 100% AI written, because I had a need and wanted something that just worked. It was created in a day, versus potentially never finishing an entire side-project for a throw-away trend of wanting to play sound-bites.
+
+Hate AI? Don't use it.
+
+Don't care about AI? Feel free to use it.
+
+It solved my problem, and it works for me :)
+
 ## Features
 
 - **Boards of clips** — import audio files (WAV, MP3, M4A, AAC, WMA, FLAC), organize into boards,
@@ -19,6 +31,9 @@ the voice-changer bulk. Native .NET/WPF, not Electron.
   (`streamdeck-plugin/`) to trigger clips, stop clips, and panic-stop everything from physical keys.
 - **Low-latency option**, system tray minimize, self-contained single-file distribution (no separate
   .NET runtime install required).
+- **Update notifications** — checks GitHub Releases on startup and shows a dismissible notice (with a
+  direct link) if a newer app build or a newer Stream Deck plugin is available. Notify-only: nothing
+  downloads or applies automatically, you choose when to grab it.
 
 ## Requirements
 
